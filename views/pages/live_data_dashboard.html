@@ -259,21 +259,30 @@
 
 
     $('.Session_packing').click(function(e){
-    $('#loader').show();
+   draw_live_sales()
+    })
+
+    $('.Day_packing').click(function(e){
+    draw_live_sales()
+    })
+
+function draw_live_sales()
+{
+ $('#loader').show();
     mobile_hide();
     $('#Day_packing').addClass('active');
     $('#Session_packing').removeClass('active');
      $('#Outlet_packing').addClass('active');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
+    $.get('get_restaurant_outlet_packing', function(live_packing_data) {
 
-    var sum_of_session = _.chain(live_packing_data.session_wise_details)
-    .groupBy("session")
+    var sum_of_session = _.chain(live_packing_data)
+    .groupBy("session_name")
     .map(function(value, key) {
     return {
     name: key,
-    total_packed: sum(_.pluck(value, "total_packed")),
-    total_unpacked:sum(_.pluck(value,"session_unpacked"))
+    orderedqty: sum(_.pluck(value, "orderedqty")),
+    pkdquantity:sum(_.pluck(value,"pkdquantity"))
     }
     })
     .value();
@@ -287,8 +296,9 @@
     name_array.push(item.name)
     var packed_array=[];
     var un_packed_array=[];
-    packed_array.push(item.total_packed)
-    un_packed_array.push(item.total_unpacked)
+    var unpacked=item.orderedqty-item.pkdquantity
+    packed_array.push(item.pkdquantity)
+    un_packed_array.push(unpacked)
     main_un_packed_array.push(un_packed_array)
     main_packed_array.push(packed_array)
     })
@@ -307,37 +317,7 @@
     $('#live_packing_container').html( xhr.responseText)
     $('#live_packing_container_mobile').html( xhr.responseText)
     });
-    })
-
-    $('.Day_packing').click(function(e){
-    $('#loader').show();
-    mobile_hide();
-    $('#Day_packing').removeClass('active');
-    $('#Session_packing').addClass('active');
-     $('#Outlet_packing').addClass('active');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
-    var total_quantity=0;
-    var main_array=[];
-    $.map(live_packing_data,function(item,key){
-    if(key!='session_wise_details'){
-    var data=[];
-    total_quantity+=item
-    data.push(item)
-    main_array.push({name:key,data:data})
-    }
-    })
-    draw_live_packing_chart('live_packing_container',main_array,total_quantity)
-    draw_live_packing_chart('live_packing_container_mobile',main_array,total_quantity)
-    $('#loader').hide();
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#loader').hide();
-     $('#packing_summary_div').show();
-    $('#live_packing_container').html( xhr.responseText)
-    $('#live_packing_container_mobile').html( xhr.responseText)
-    });
-    })
+}
 
     function draw_live_packing_chart(container,main_array,total_quantity){
     $('#packing_summary_div').show();
