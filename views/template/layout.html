@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{title}}</title>
+  <link href="/css/vendor/jquery-confirm.css" rel="stylesheet" />
+  <link href="/css/foundation.css" rel="stylesheet" />
+  <link href="/css/app.css" rel="stylesheet" />
+  <style>
+       
+    {{{yield-styles}}}
+  </style>
+</head>
+
+<body>
+<section id="header">
+      <div class="row">
+         <div class="small-12 columns hide-for-small-only">
+             <img src="/images/frshly-logo.png">
+         </div>
+         <div class="small-12 columns show-for-small-only">
+             <img src="/images/frshly-mobile-logo.png">
+         </div>
+      </div>
+   </section>
+    {{{yield-loginlogout}}}
+    {{{yield-body}}}
+
+  <footer class="row">
+    <div class="large-12 columns">
+
+    </div>
+  </footer>
+  <script src='./js/vendor/jquery.js'></script>
+  <script src='./js/vendor/foundation.js'></script>
+  <script src='./js/vendor/jquery-confirm.js'></script>
+  <script src='./js/vendor/underscore.js'></script>
+  <script src='./js/vendor/what-input.js'></script>
+  <script src='./js/vendor/highcharts.js'></script>
+  <script src='./js/vendor/drilldown.js'></script>
+  <script src='./js/vendor/jquery.blockUI.js'></script>
+  <script>
+  
+    $(document).foundation();     
+    $.blockUI({ message: '<h2>Just a moment...</h2>' });
+    $.unblockUI();
+    $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
+
+    {{{yield-scripts}}}
+    </script> {{{yield-tags}}}
+</body>
+
+</html>

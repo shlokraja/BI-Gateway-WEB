@@ -1,0 +1,78 @@
+{{#yield-body}}
+<br />
+<div id="login" class="row vcenter">
+    <!-- Remove vcenter to make the container top aligned -->
+<div class="success callout small" style="display:none" id='warning' data-closable="slide-out-right">
+  <p>This PIN is not yet registered.</p>
+  <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+  <div class="small-12 columns">
+<section id="customer-container" class="small-centered">
+           <form>
+            <div class="row">
+                <div id='error'></div>
+                <div class="small-12 columns">
+                    <label>
+                        Enter PIN
+                        <input type="text" id="txt_pin" placeholder="PIN">
+                    </label>
+                </div>
+
+                <div class="small-12 columns">
+                    <a class="button expanded" id="btn_sign_in">Login</a>
+                </div>
+
+                <div class="small-12 columns">
+                    <a class="#" id="btn_signup">Not Registered - Signup</a>
+                </div>
+
+            </div>
+        </form>
+   
+ </section>
+  </div>
+</div>
+{{/yield-body}}
+
+{{#yield-styles}}
+        .log-in-form {
+        border: 1px solid #cacaca;
+        padding: 1rem;
+        border-radius: 3px; }
+
+{{/yield-styles}}
+
+
+{{#yield-scripts}}
+$(document).ready(function(){
+var err="{{err}}";
+if(err)
+{
+$('#warning').show();
+setTimeout(function(){
+$('#warning').hide();
+},3000)
+}
+})
+        $('#btn_signup').on('click',function(e){
+        var csvLink = 'get_sign_up';
+        $('#btn_signup').attr('href', csvLink);
+        })
+
+        $('#btn_sign_in').click(function(e){
+        var pin=$.trim($('#txt_pin').val());
+        if(pin==undefined || pin=="")
+        {
+        $.alert({
+            title: 'Notification!',
+            content: 'Please fill the PIN',
+        });
+        return
+        }
+        var dash_link = 'check_credential?pin='+ pin;
+        $('#btn_sign_in').attr('href', dash_link);
+        })
+{{/yield-scripts}}
