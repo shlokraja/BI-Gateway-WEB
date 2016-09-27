@@ -483,7 +483,7 @@ function draw_live_sales()
 
     $('.Productwise').click(function(){
     mobile_hide();
-    $('#menu_name').text('Sales');
+    $('#menu_name').text('Product Sales');
      $('#sold_taken').addClass('active');
      $('#Outletwise').addClass('active');
      $('#Productwise').removeClass('active');
@@ -526,7 +526,7 @@ function draw_live_sales()
     })
 
     $('.Outletwise').click(function(){
-     $('#menu_name').text('Sales');
+     $('#menu_name').text('Outlet Sales');
     mobile_hide();
     $('#sold_taken').addClass('active');
      $('#Productwise').addClass('active');
@@ -622,9 +622,20 @@ function draw_live_sales()
     var sum_object={name:data.name,y:data.qty, drilldown: data.name }
     sum_object_array.push(sum_object)
     })
-    $('#'+container).highcharts({
+     var defaultTitle = title_text;
+    var drilldownTitle = "More about ";
+   var chart= new Highcharts.Chart({
     chart: {
-    type: 'column'
+    type: 'column',
+renderTo:container,
+        events: {
+            drilldown: function(e) {
+                chart.setTitle({ text: drilldownTitle + e.drilldown.pointOptions.name });
+            },
+            drillup: function(e) {
+                chart.setTitle({ text: defaultTitle });
+            }
+        }
     },
     title: {
     text: title_text
