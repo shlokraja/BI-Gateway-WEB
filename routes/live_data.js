@@ -185,7 +185,7 @@ router.get('/get_restaurant_outlet_packing', function (req, res, next) {
     
  var cookie = req.cookies.login_details;
     if (cookie != undefined) {
-        var url = api_url + 'live_packing_data_ctrlctr?firebase_url=' + cookie.firebase_url+'/queue&restaurant_id=' + cookie.restaurant_id;
+        var url = api_url + 'live_packing_data_ctrlctr?firebase_url=' + cookie.firebase_url+'&restaurant_id=' + cookie.restaurant_id;
          request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)

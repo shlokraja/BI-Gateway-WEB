@@ -2,7 +2,7 @@
 <section id="customer-container">
     <div class="row" id='main_row' data-short_name={{restaurant_short_name}} data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
         <div class="small-12 small-centered columns">
-            <img id="restaurant_img" src="/images/AJP.png" alt="" />
+            <img id="restaurant_img" src="/images/Freshly.png" alt="" />
             <!-- Replace with the Respective Customer Logo -->
         </div>
     </div>
@@ -69,7 +69,7 @@
 <section class="show-for-small-only">
     <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
         <button class="menu-icon" type="button" data-toggle></button>
-        <div class="title-bar-title">Menu</div>
+        <div id="menu_name" class="title-bar-title">Menu</div>
     </div>
 
     <div class="top-bar" id="example-menu">
@@ -132,7 +132,12 @@
     get_volume_plan_data();
     var short_name="{{restaurant_short_name}}"
     var image_path = 'images/'+short_name+'.png';
-    $('#restaurant_img').attr("src", image_path)
+    $('#restaurant_img').attr("src", image_path);
+    $('#example-menu a').on('click', function(){
+    $("#example-menu").fadeToggle(200);   
+    $(".button a").toggleClass('btn-open').toggleClass('btn-close');
+    open = false;
+});
     });
     $('.volume_plan').click(function(){
     mobile_hide();
@@ -140,7 +145,8 @@
     })
 
     $('.sold_taken').click(function(e){
-    mobile_hide();
+        mobile_hide();
+      $('#menu_name').text('Sales Live');
      $('#sold_taken').removeClass('active');
      $('#Outletwise').addClass('active');
      $('#Productwise').addClass('active');
@@ -152,12 +158,17 @@
     $.map(sales_live.sales_data,function(item){
     total_quantity+=parseInt(item.qty);
     })
-    var unsold=parseInt(sales_live.taken_data)-total_quantity;
+    var unsold=0;
+    if(sales_live.taken_data!=null)
+    {
+    unsold=parseInt(sales_live.taken_data)-total_quantity;
+    }
+    
     var new_data={Sold:total_quantity,Unsold:unsold}
     var main_array=[];
     $.map(new_data,function(item,key){
     var data=[];
-    total_quantity+=item
+   // total_quantity+=item
     data.push(item)
     main_array.push({name:key,data:data})
     })
@@ -215,6 +226,23 @@
 
 
     $('.Outlet_packing').click(function(e){
+    $('#menu_name').text('Outlet Packing');
+    draw_outlet_live_sales()
+    //setInterval(function(){draw_outlet_live_sales()},60000)
+    })
+
+
+    $('.Session_packing').click(function(e){
+      $('#menu_name').text('Session Packing');
+   draw_live_sales()
+    })
+
+    $('.Day_packing').click(function(e){
+    $('#menu_name').text('Day Packing');
+    draw_live_sales()
+    })
+
+function draw_outlet_live_sales(){
     $('#loader').show();
     mobile_hide();
     $('#Outlet_packing').removeClass('active');
@@ -233,9 +261,20 @@
     name_array.push(item.outletname)
     var packed_array=[];
     var un_packed_array=[];
-    packed_array.push(parseInt(item.pkdquantity))
-    var unpacked_qty=item.orderedqty-item.pkdquantity;
-    un_packed_array.push( parseInt(unpacked_qty) )
+
+    var unpacked=0;
+    var packed=0;
+    if(item.pkdquantity==null)
+    {
+ unpacked=item.orderedqty;
+    }else
+    {
+    unpacked=item.orderedqty-item.pkdquantity
+    packed= item.pkdquantity
+    }
+
+    packed_array.push(parseInt(packed))
+    un_packed_array.push( parseInt(unpacked) )
 
     main_un_packed_array.push(un_packed_array)
     main_packed_array.push(packed_array)
@@ -254,17 +293,7 @@
     $('#packing_summary_div').show();
     $('#live_packing_container').html( xhr.responseText)
     $('#live_packing_container_mobile').html( xhr.responseText)
-    });
-    })
-
-
-    $('.Session_packing').click(function(e){
-   draw_live_sales()
-    })
-
-    $('.Day_packing').click(function(e){
-    draw_live_sales()
-    })
+    });}
 
 function draw_live_sales()
 {
@@ -296,8 +325,18 @@ function draw_live_sales()
     name_array.push(item.name)
     var packed_array=[];
     var un_packed_array=[];
-    var unpacked=item.orderedqty-item.pkdquantity
-    packed_array.push(item.pkdquantity)
+    var unpacked=0;
+    var packed=0;
+    if(isNaN(item.pkdquantity))
+    {
+ unpacked=item.orderedqty;
+    }else
+    {
+    unpacked=item.orderedqty-item.pkdquantity
+    packed=item.pkdquantity
+    }
+   
+    packed_array.push(packed)
     un_packed_array.push(unpacked)
     main_un_packed_array.push(un_packed_array)
     main_packed_array.push(packed_array)
@@ -412,6 +451,7 @@ function draw_live_sales()
     }
     $('.sales_summary').click(function(){
     mobile_hide();
+    $('#menu_name').text('Sales Summary');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summary_data) {
 
@@ -443,6 +483,7 @@ function draw_live_sales()
 
     $('.Productwise').click(function(){
     mobile_hide();
+    $('#menu_name').text('Sales');
      $('#sold_taken').addClass('active');
      $('#Outletwise').addClass('active');
      $('#Productwise').removeClass('active');
@@ -485,6 +526,7 @@ function draw_live_sales()
     })
 
     $('.Outletwise').click(function(){
+     $('#menu_name').text('Sales');
     mobile_hide();
     $('#sold_taken').addClass('active');
      $('#Productwise').addClass('active');
@@ -534,7 +576,8 @@ function draw_live_sales()
 
     function get_volume_plan_data()
     {
-
+    
+     $('#menu_name').text('Plan');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
 
