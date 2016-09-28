@@ -182,25 +182,25 @@ router.get('/live_packing_data', function (req, res) {
 })
 
 router.get('/get_restaurant_outlet_packing', function (req, res, next) {
-    
- var cookie = req.cookies.login_details;
-    if (cookie != undefined) {
-        var url = api_url + 'live_packing_data_ctrlctr?firebase_url=' + cookie.firebase_url+'&restaurant_id=' + cookie.restaurant_id;
-         request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var info = JSON.parse(body)
 
- if (info.status != 'FAIL') {
-    res.send(info.data.live_packing_data)
-                  
-      }else {
+    var cookie = req.cookies.login_details;
+    if (cookie != undefined) {
+        var url = api_url + 'live_packing_data_ctrlctr?firebase_url=' + cookie.firebase_url + '&restaurant_id=' + cookie.restaurant_id;
+        request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var info = JSON.parse(body)
+
+                if (info.status != 'FAIL') {
+                    res.send(info.data.live_packing_data)
+
+                } else {
                     res.status(400).send('No data found ');
-                } 
-        }
-        if (error) {
-            res.status(400).send('Something failed ');
-        }
-    })
+                }
+            }
+            if (error) {
+                res.status(400).send('Something failed ');
+            }
+        })
     } else {
         res.render('pages/live_data_login', context);
     }

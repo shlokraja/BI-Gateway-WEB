@@ -11,9 +11,9 @@
     <div class="row">
         <ul class="tabs" data-tabs id="example-tabs">
             <li class="tabs-title is-active"><a id="volume_plan" class="volume_plan" href="#panel1" aria-selected="true">Plan</a></li>
-            <li class="tabs-title"><a class="Day_packing"  id='live_packing' href="#panel2">Packing</a></li>
+            <li class="tabs-title"><a class="Day_packing" id='live_packing' href="#panel2">Packing</a></li>
             <li class="tabs-title"><a class="sold_taken" id='sales_live' href="#panel3">Sales</a></li>
-            <li class="tabs-title"><a  class="sales_summary" id="sales_summary" href="#panel4">Summary</a></li>
+            <li class="tabs-title"><a class="sales_summary" id="sales_summary" href="#panel4">Summary</a></li>
         </ul>
     </div>
 </section>
@@ -77,7 +77,7 @@
             <ul class="dropdown menu" data-dropdown-menu>
                 <li><a id="volume_plan" class="volume_plan" href="#">Plan</a></li>
                 <li>
-                    <a  href="#">Packing</a>
+                    <a href="#">Packing</a>
                     <ul class="menu vertical">
                         <li><a class="Day_packing hide" id="Day_packing">Overall Day</a></li>
                         <li><a class="Session_packing" id="Session_packing">Session Wise</a></li>
@@ -88,7 +88,7 @@
                     <a href="#">Sales</a>
                     <ul class="menu vertical">
                         <li><a class="sold_taken" id="sold_taken">Sales Live</a></li>
-                        <li><a  class="Outletwise" id="Outletwise">Outlet Wise</a></li>
+                        <li><a class="Outletwise" id="Outletwise">Outlet Wise</a></li>
                         <li><a class="Productwise" id="Productwise">Product Wise</a></li>
                     </ul>
                 </li>
@@ -103,8 +103,12 @@
         <!-- Replace with the Respective Customer Logo -->
         <div id="volume_plan_container_mobile" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
     </div>
-    <div id="packing_summary_div"><div class="live_packing_container" id="live_packing_container_mobile"  style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>
-    <div id="live_sales_summary_div"><div class="live_sales_container" id="live_sales_container_mobile"  style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>
+    <div id="packing_summary_div">
+        <div class="live_packing_container" id="live_packing_container_mobile" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    </div>
+    <div id="live_sales_summary_div">
+        <div class="live_sales_container" id="live_sales_container_mobile" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    </div>
     <div id="sales_summary_div">
         <!-- Replace with the Respective Customer Logo -->
         <table cellpadding="0" cellspacing="0" border="0">
@@ -119,294 +123,284 @@
     </div>
 </section>
 
-{{/yield-body}}
+{{/yield-body}} {{#yield-styles}} {{/yield-styles}} {{#yield-scripts}}
 
-{{#yield-styles}}
-
-{{/yield-styles}}
-
-{{#yield-scripts}}
-
-    $(document).ready(function(){
+ 
+$(document).ready(function () {
     mobile_hide();
     get_volume_plan_data();
-    var short_name="{{restaurant_short_name}}"
-    var image_path = 'images/'+short_name+'.png';
+    var short_name = "{{restaurant_short_name}}"
+    var image_path = 'images/' + short_name + '.png';
     $('#restaurant_img').attr("src", image_path);
-    $('#example-menu a').on('click', function(){
-    $("#example-menu").fadeToggle(200);   
-    $(".button a").toggleClass('btn-open').toggleClass('btn-close');
-    open = false;
-});
+    $('#example-menu a').on('click', function () {
+        $("#example-menu").fadeToggle(200);
+        $(".button a").toggleClass('btn-open').toggleClass('btn-close');
+        open = false;
     });
-    $('.volume_plan').click(function(){
+});
+$('.volume_plan').click(function () {
     mobile_hide();
     get_volume_plan_data();
+})
+
+$('.sold_taken').click(function (e) {
+    mobile_hide();
+    $('#menu_name').text('Sales Live');
+    $('#sold_taken').removeClass('active');
+    $('#Outletwise').addClass('active');
+    $('#Productwise').addClass('active');
+
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
+    $.get('get_live_sales_data', { 'restaurant_id': restaurant_id }, function (sales_live) {
+        var total_quantity = 0;
+        var taken_data=sales_live.taken_data;
+        $('#live_sales_summary_div').show();
+        $.map(sales_live.sales_data, function (item) {
+            total_quantity += parseInt(item.qty);
+        })
+        var unsold = 0;
+        if (sales_live.taken_data != null) {
+            unsold = parseInt(sales_live.taken_data) - total_quantity;
+        }
+
+        var new_data = {  Unsold: unsold,Sold: total_quantity}
+        var main_array = [];
+        $.map(new_data, function (item, key) {
+            var data = [];
+            // total_quantity+=item
+            data.push(item)
+            main_array.push({ name: key, data: data })
+        })
+
+        $('.live_sales_container').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Sales Live'
+            },
+            xAxis: {
+                categories: ['Food Item']
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Total Items'
+                },
+                stackLabels: {
+                    enabled: true,
+                    style: {
+                        fontWeight: 'bold',
+                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                    }
+                }
+            },
+            tooltip: {
+                pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
+                shared: true
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function () {
+                            var pcnt = (this.y / taken_data) * 100;
+                            return Highcharts.numberFormat(pcnt) + '%';
+                        },
+                    }
+                }
+            },
+            series: main_array
+        });
+
     })
-
-    $('.sold_taken').click(function(e){
-        mobile_hide();
-      $('#menu_name').text('Sales Live');
-     $('#sold_taken').removeClass('active');
-     $('#Outletwise').addClass('active');
-     $('#Productwise').addClass('active');
-
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
-    var total_quantity=0;
-    $('#live_sales_summary_div').show();
-    $.map(sales_live.sales_data,function(item){
-    total_quantity+=parseInt(item.qty);
-    })
-    var unsold=0;
-    if(sales_live.taken_data!=null)
-    {
-    unsold=parseInt(sales_live.taken_data)-total_quantity;
-    }
-    
-    var new_data={Sold:total_quantity,Unsold:unsold}
-    var main_array=[];
-    $.map(new_data,function(item,key){
-    var data=[];
-   // total_quantity+=item
-    data.push(item)
-    main_array.push({name:key,data:data})
-    })
-
-    $('.live_sales_container').highcharts({
-    chart: {
-    type: 'column'
-    },
-    title: {
-    text: 'Sales Live'
-    },
-    xAxis: {
-    categories: ['Food Item']
-    },
-    yAxis: {
-    min: 0,
-    title: {
-    text: 'Total Items'
-    },
-    stackLabels: {
-    enabled: true,
-    style: {
-    fontWeight: 'bold',
-    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-    }
-    }
-    },
-    tooltip: {
-    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
-    shared: true
-    },
-    plotOptions: {
-    column: {
-    stacking: 'normal',
-
-    dataLabels: {
-    enabled: true,
-    formatter:function() {
-    var pcnt = (this.y /total_quantity) * 100;
-    return Highcharts.numberFormat(pcnt) + '%';
-    },
-    }
-    }
-    },
-    series: main_array
-    });
-
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#live_sales_summary_div').show();
-     $('.live_sales_container').html( xhr.responseText)
-     $('.live_sales_container_mobile').html( xhr.responseText)
-    });
-    })
+        .fail(function (xhr, err, jquery) {
+            $('#live_sales_summary_div').show();
+            $('.live_sales_container').html(xhr.responseText)
+            $('.live_sales_container_mobile').html(xhr.responseText)
+        });
+})
 
 
-    $('.Outlet_packing').click(function(e){
+$('.Outlet_packing').click(function (e) {
     $('#menu_name').text('Outlet Packing');
     draw_outlet_live_sales()
     //setInterval(function(){draw_outlet_live_sales()},60000)
-    })
+})
 
 
-    $('.Session_packing').click(function(e){
-      $('#menu_name').text('Session Packing');
-   draw_live_sales()
-    })
+$('.Session_packing').click(function (e) {
+    $('#menu_name').text('Session Packing');
+    draw_live_sales()
+})
 
-    $('.Day_packing').click(function(e){
+$('.Day_packing').click(function (e) {
     $('#menu_name').text('Day Packing');
     draw_live_sales()
-    })
+})
 
-function draw_outlet_live_sales(){
+function draw_outlet_live_sales() {
     $('#loader').show();
     mobile_hide();
     $('#Outlet_packing').removeClass('active');
     $('#Day_packing').addClass('active');
     $('#Session_packing').addClass('active');
 
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('get_restaurant_outlet_packing', function(live_packing_data) {
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
+    $.get('get_restaurant_outlet_packing', function (live_packing_data) {
 
-    var main_data=[];
+        var main_data = [];
 
-    var main_packed_array=[];
-    var main_un_packed_array=[];
-    var name_array=[];
-    $.map(live_packing_data,function(item){
-    name_array.push(item.outletname)
-    var packed_array=[];
-    var un_packed_array=[];
+        var main_packed_array = [];
+        var main_un_packed_array = [];
+        var name_array = [];
+        $.map(live_packing_data, function (item) {
+            name_array.push(item.outletname)
+            var packed_array = [];
+            var un_packed_array = [];
 
-    var unpacked=0;
-    var packed=0;
-    if(item.pkdquantity==null)
-    {
- unpacked=item.orderedqty;
-    }else
-    {
-    unpacked=item.orderedqty-item.pkdquantity
-    packed= item.pkdquantity
-    }
+            var unpacked = 0;
+            var packed = 0;
+            if (item.pkdquantity == null) {
+                unpacked = item.orderedqty;
+            } else {
+                unpacked = item.orderedqty - item.pkdquantity
+                packed = item.pkdquantity
+            }
 
-    packed_array.push(parseInt(packed))
-    un_packed_array.push( parseInt(unpacked) )
+            packed_array.push(parseInt(packed))
+            un_packed_array.push(parseInt(unpacked))
 
-    main_un_packed_array.push(un_packed_array)
-    main_packed_array.push(packed_array)
+            main_un_packed_array.push(un_packed_array)
+            main_packed_array.push(packed_array)
+        })
+
+        main_data.push({ name: 'packed', data: main_packed_array })
+        main_data.push({ name: 'unpacked', data: main_un_packed_array })
+        $('#packing_summary_div').show();
+        draw_live_session_packing_chart('live_packing_container', main_data, name_array)
+        draw_live_session_packing_chart('live_packing_container_mobile', main_data, name_array)
+
+        $('#loader').hide();
     })
+        .fail(function (xhr, err, jquery) {
+            $('#loader').hide();
+            $('#packing_summary_div').show();
+            $('#live_packing_container').html(xhr.responseText)
+            $('#live_packing_container_mobile').html(xhr.responseText)
+        });
+}
 
-    main_data.push({name:'packed',data:main_packed_array})
-    main_data.push({name:'unpacked',data:main_un_packed_array})
-    $('#packing_summary_div').show();
-    draw_live_session_packing_chart('live_packing_container',main_data,name_array)
-    draw_live_session_packing_chart('live_packing_container_mobile',main_data,name_array)
-
-    $('#loader').hide();
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#loader').hide();
-    $('#packing_summary_div').show();
-    $('#live_packing_container').html( xhr.responseText)
-    $('#live_packing_container_mobile').html( xhr.responseText)
-    });}
-
-function draw_live_sales()
-{
- $('#loader').show();
+function draw_live_sales() {
+    $('#loader').show();
     mobile_hide();
     $('#Day_packing').addClass('active');
     $('#Session_packing').removeClass('active');
-     $('#Outlet_packing').addClass('active');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('get_restaurant_outlet_packing', function(live_packing_data) {
+    $('#Outlet_packing').addClass('active');
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
+    $.get('get_restaurant_outlet_packing', function (live_packing_data) {
 
-    var sum_of_session = _.chain(live_packing_data)
-    .groupBy("session_name")
-    .map(function(value, key) {
-    return {
-    name: key,
-    orderedqty: sum(_.pluck(value, "orderedqty")),
-    pkdquantity:sum(_.pluck(value,"pkdquantity"))
-    }
+        var sum_of_session = _.chain(live_packing_data)
+            .groupBy("session_name")
+            .map(function (value, key) {
+                return {
+                    name: key,
+                    orderedqty: sum(_.pluck(value, "orderedqty")),
+                    pkdquantity: sum(_.pluck(value, "pkdquantity"))
+                }
+            })
+            .value();
+
+        var main_data = [];
+
+        var main_packed_array = [];
+        var main_un_packed_array = [];
+        var name_array = [];
+        $.map(sum_of_session, function (item) {
+            name_array.push(item.name)
+            var packed_array = [];
+            var un_packed_array = [];
+            var unpacked = 0;
+            var packed = 0;
+            if (isNaN(item.pkdquantity)) {
+                unpacked = item.orderedqty;
+            } else {
+                unpacked = item.orderedqty - item.pkdquantity
+                packed = item.pkdquantity
+            }
+
+            packed_array.push(packed)
+            un_packed_array.push(unpacked)
+            main_un_packed_array.push(un_packed_array)
+            main_packed_array.push(packed_array)
+        })
+
+        main_data.push({ name: 'packed', data: main_packed_array })
+        main_data.push({ name: 'unpacked', data: main_un_packed_array })
+        $('#packing_summary_div').show();
+        draw_live_session_packing_chart('live_packing_container', main_data, name_array)
+        draw_live_session_packing_chart('live_packing_container_mobile', main_data, name_array)
+
+        $('#loader').hide();
     })
-    .value();
-
-    var main_data=[];
-
-    var main_packed_array=[];
-    var main_un_packed_array=[];
-    var name_array=[];
-    $.map(sum_of_session,function(item){
-    name_array.push(item.name)
-    var packed_array=[];
-    var un_packed_array=[];
-    var unpacked=0;
-    var packed=0;
-    if(isNaN(item.pkdquantity))
-    {
- unpacked=item.orderedqty;
-    }else
-    {
-    unpacked=item.orderedqty-item.pkdquantity
-    packed=item.pkdquantity
-    }
-   
-    packed_array.push(packed)
-    un_packed_array.push(unpacked)
-    main_un_packed_array.push(un_packed_array)
-    main_packed_array.push(packed_array)
-    })
-
-    main_data.push({name:'packed',data:main_packed_array})
-    main_data.push({name:'unpacked',data:main_un_packed_array})
-    $('#packing_summary_div').show();
-    draw_live_session_packing_chart('live_packing_container',main_data,name_array)
-    draw_live_session_packing_chart('live_packing_container_mobile',main_data,name_array)
-
-    $('#loader').hide();
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#loader').hide();
-    $('#packing_summary_div').show();
-    $('#live_packing_container').html( xhr.responseText)
-    $('#live_packing_container_mobile').html( xhr.responseText)
-    });
+        .fail(function (xhr, err, jquery) {
+            $('#loader').hide();
+            $('#packing_summary_div').show();
+            $('#live_packing_container').html(xhr.responseText)
+            $('#live_packing_container_mobile').html(xhr.responseText)
+        });
 }
 
-    function draw_live_packing_chart(container,main_array,total_quantity){
+function draw_live_packing_chart(container, main_array, total_quantity) {
     $('#packing_summary_div').show();
-    $('#'+container).highcharts({
-    chart: {
-    type: 'column'
-    },
-    title: {
-    text: 'Packing Status'
-    },
-    xAxis: {
-    categories: ['Food Item']
-    },
-    yAxis: {
-    min: 0,
-    title: {
-    text: 'Total Items'
-    },
-    stackLabels: {
-    enabled: true,
-    style: {
-    fontWeight: 'bold',
-    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-    }
-    }
-    },
-    tooltip: {
-    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
-    shared: true
-    },
-    plotOptions: {
-    column: {
-    stacking: 'normal',
+    $('#' + container).highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Packing Status'
+        },
+        xAxis: {
+            categories: ['Food Item']
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Items'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+            }
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
+            shared: true
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
 
-    dataLabels: {
-    enabled: true,
-    formatter:function() {
-    var pcnt = (this.y /total_quantity) * 100;
-    return Highcharts.numberFormat(pcnt) + '%';
-    },
-    }
-    }
-    },
-    series: main_array
+                dataLabels: {
+                    enabled: true,
+                    formatter: function () {
+                        var pcnt = (this.y / total_quantity) * 100;
+                        return Highcharts.numberFormat(pcnt) + '%';
+                    },
+                }
+            }
+        },
+        series: main_array
     });
+}  
 
-    }
-
-    function draw_live_session_packing_chart(container,main_data,name_array){
-    $('#'+container).highcharts({
+function draw_live_session_packing_chart(container, main_data, name_array) {
+$('#'+container).highcharts({
     chart: {
     type: 'column'
     },
@@ -448,239 +442,241 @@ function draw_live_sales()
     },
     series: main_data
     });
-    }
-    $('.sales_summary').click(function(){
+}
+   
+   
+$('.sales_summary').click(function () {
     mobile_hide();
     $('#menu_name').text('Sales Summary');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summary_data) {
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
+    $.get('get_sales_summary', { 'restaurant_id': restaurant_id }, function (sales_summary_data) {
 
-    var productwise_wise_sum_of_sales = _.chain(sales_summary_data)
-    .groupBy("period")
-    .map(function(value, key) {
-    return {
-    period: key,
-    sale:sum(_.pluck(value, "sale"))
-    }
-    })
-    .value();
+        var productwise_wise_sum_of_sales = _.chain(sales_summary_data)
+            .groupBy("period")
+            .map(function (value, key) {
+                return {
+                    period: key,
+                    sale: sum(_.pluck(value, "sale"))
+                }
+            })
+            .value();
 
-    var table_body='';
-    $.map(productwise_wise_sum_of_sales,function(data){
-    table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right">  '+addCommas(data.sale.toFixed(2))+' ₹ </td></tr>'
+        var table_body = '';
+        $.map(productwise_wise_sum_of_sales, function (data) {
+            table_body += '<tr><td>' + data.period + ' </td><td style="text-align:right">  ' + addCommas(data.sale.toFixed(2)) + ' ₹ </td></tr>'
+        })
+        $('#sales_summary_div').show();
+        $('#sales_summary_container').html(table_body)
+        $('#sales_summary_container_mobile').html(table_body)
+
     })
-    $('#sales_summary_div').show();
-    $('#sales_summary_container').html(table_body)
-    $('#sales_summary_container_mobile').html(table_body)
+        .fail(function (xhr, err, jquery) {
+            $('#sales_summary_div').show();
+            $('#sales_summary_container').html(xhr.responseText)
+            $('#sales_summary_container_mobile').html(xhr.responseText)
+        });
+})
+
    
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#sales_summary_div').show();
-    $('#sales_summary_container').html(xhr.responseText)
-    $('#sales_summary_container_mobile').html(xhr.responseText)
-    });
-    })
-
-    $('.Productwise').click(function(){
+$('.Productwise').click(function () {
     mobile_hide();
     $('#menu_name').text('Product Sales');
-     $('#sold_taken').addClass('active');
-     $('#Outletwise').addClass('active');
-     $('#Productwise').removeClass('active');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    
-    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+    $('#sold_taken').addClass('active');
+    $('#Outletwise').addClass('active');
+    $('#Productwise').removeClass('active');
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
 
-    var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
-    .groupBy("food_item_name")
-    .map(function(value, key) {
-    return {
-    name: key,
-    qty: sum(_.pluck(value, "qty"))
-    }
-    })
-    .value();
+    $.get('get_live_sales_data', { 'restaurant_id': restaurant_id }, function (sales_live_data) {
 
-    var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
-    .groupBy("food_item_name")
-    .map(function(value, key) {
-    var data=[];
-    _.map(value,function(x){
-    var datas=[];
-    datas.push(x.outlet_name)
-    datas.push( parseInt(x.qty))
-    data.push(datas)
-    })
-    return {name:key,id:key,data};
-    })
-    .value();
-    $('#live_sales_summary_div').show();
-    draw_chart('live_packing_container_mobile','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
-    draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#live_sales_summary_div').show();
-    $('#live_sales_container_mobile').html(xhr.responseText)
-    $('#live_sales_container').html(xhr.responseText)
-    });
-    })
+        var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
+            .groupBy("food_item_name")
+            .map(function (value, key) {
+                return {
+                    name: key,
+                    qty: sum(_.pluck(value, "qty"))
+                }
+            })
+            .value();
 
-    $('.Outletwise').click(function(){
-     $('#menu_name').text('Outlet Sales');
+        var food_item_wise_outlet = _.chain(sales_live_data.sales_data)
+            .groupBy("food_item_name")
+            .map(function (value, key) {
+                var data = [];
+                _.map(value, function (x) {
+                    var datas = [];
+                    datas.push(x.outlet_name)
+                    datas.push(parseInt(x.qty))
+                    data.push(datas)
+                })
+                return { name: key, id: key, data };
+            })
+            .value();
+        $('#live_sales_summary_div').show();
+        draw_chart('live_packing_container_mobile', 'Product wise details', productwise_wise_sum_of_sales, food_item_wise_outlet)
+        draw_chart('live_sales_container', 'Product wise details', productwise_wise_sum_of_sales, food_item_wise_outlet)
+    })
+        .fail(function (xhr, err, jquery) {
+            $('#live_sales_summary_div').show();
+            $('#live_sales_container_mobile').html(xhr.responseText)
+            $('#live_sales_container').html(xhr.responseText)
+        });
+})
+
+
+$('.Outletwise').click(function () {
+    $('#menu_name').text('Outlet Sales');
     mobile_hide();
     $('#sold_taken').addClass('active');
-     $('#Productwise').addClass('active');
-     $('#Outletwise').removeClass('active');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $('#Productwise').addClass('active');
+    $('#Outletwise').removeClass('active');
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
     $('#live_sales_summary_div').show();
-    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+    $.get('get_live_sales_data', { 'restaurant_id': restaurant_id }, function (sales_live_data) {
 
-    var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
-    .groupBy("outlet_name")
-    .map(function(value, key) {
-    return {
-    name: key,
-    qty: sum(_.pluck(value, "qty"))
-    }
-    })
-    .value();
+        var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
+            .groupBy("outlet_name")
+            .map(function (value, key) {
+                return {
+                    name: key,
+                    qty: sum(_.pluck(value, "qty"))
+                }
+            })
+            .value();
 
-    var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
-    .groupBy("outlet_name")
-    .map(function(value, key) {
-    var data=[];
-    _.map(value,function(x){
-    var datas=[];
-    datas.push(x.food_item_name)
-    datas.push( parseInt(x.qty))
-    data.push(datas)
+        var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
+            .groupBy("outlet_name")
+            .map(function (value, key) {
+                var data = [];
+                _.map(value, function (x) {
+                    var datas = [];
+                    datas.push(x.food_item_name)
+                    datas.push(parseInt(x.qty))
+                    data.push(datas)
+                })
+                return { name: key, id: key, data };
+            })
+            .value();
+        draw_chart('live_sales_container_mobile', 'Outlet wise details', outlet_wise_sum_of_sales, outlet_wise_food_item)
+        draw_chart('live_sales_container', 'Outlet wise details', outlet_wise_sum_of_sales, outlet_wise_food_item)
     })
-    return {name:key,id:key,data};
-    })
-    .value();
-    draw_chart('live_sales_container_mobile','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
-    draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
-    })
-    .fail(function(xhr,err,jquery) {
-    $('#live_sales_summary_div').show();
-    $('#live_sales_container_mobile').html(xhr.responseText)
-    $('#live_sales_container').html(xhr.responseText)
-    });
-    })
+        .fail(function (xhr, err, jquery) {
+            $('#live_sales_summary_div').show();
+            $('#live_sales_container_mobile').html(xhr.responseText)
+            $('#live_sales_container').html(xhr.responseText)
+        });
+})
 
-    function sum(numbers) {
-    return _.reduce(numbers, function(result, current) {
-    return result + parseFloat(current);
+function sum(numbers) {
+    return _.reduce(numbers, function (result, current) {
+        return result + parseFloat(current);
     }, 0);
-    }
+}
 
-    function get_volume_plan_data()
-    {
-    
-     $('#menu_name').text('Plan');
-    var restaurant_id=$('#main_row').attr('data-restaurant_id')
-    $.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
+function get_volume_plan_data() {
 
-    var sum_of_session = _.chain(data)
-    .groupBy("session")
-    .map(function(value, key) {
-    return {
-    name: key,
-    qty: sum(_.pluck(value, "qty"))
-    }
-    })
-    .value();
+    $('#menu_name').text('Plan');
+    var restaurant_id = $('#main_row').attr('data-restaurant_id')
+    $.get('get_volume_plan', { 'restaurant_id': restaurant_id }, function (data) {
 
-    var session_data = _.chain(data)
-    .groupBy("session")
-    .map(function(value, key) {
-    var data=[];
-    _.map(value,function(x){
-    var datas=[];
-    datas.push(x.name)
-    datas.push(parseInt(x.qty))
-    data.push(datas)
-    })
-    return {name:key,id:key,data};
-    })
-    .value();
-    $('#volume_summary_div').show();
-    draw_chart('volume_plan_container','Volume plan details',sum_of_session,session_data)
-    draw_chart('volume_plan_container_mobile','Volume plan details',sum_of_session,session_data)
-    })
-    .fail(function(xhr,err,jquery) {
-     $('#volume_summary_div').show();
-    $('#volume_plan_container').html(xhr.responseText)
-    $('#volume_plan_container_mobile').html(xhr.responseText)
-    });
-    }
+        var sum_of_session = _.chain(data)
+            .groupBy("session")
+            .map(function (value, key) {
+                return {
+                    name: key,
+                    qty: sum(_.pluck(value, "qty"))
+                }
+            })
+            .value();
 
-    function draw_chart(container,title_text,sum_of_session,session_data)
-    {
-    var sum_object_array=[];
-    _.map(sum_of_session,function(data){
-    var sum_object={name:data.name,y:data.qty, drilldown: data.name }
-    sum_object_array.push(sum_object)
+        var session_data = _.chain(data)
+            .groupBy("session")
+            .map(function (value, key) {
+                var data = [];
+                _.map(value, function (x) {
+                    var datas = [];
+                    datas.push(x.name)
+                    datas.push(parseInt(x.qty))
+                    data.push(datas)
+                })
+                return { name: key, id: key, data };
+            })
+            .value();
+        $('#volume_summary_div').show();
+        draw_chart('volume_plan_container', 'Volume plan details', sum_of_session, session_data)
+        draw_chart('volume_plan_container_mobile', 'Volume plan details', sum_of_session, session_data)
     })
-     var defaultTitle = title_text;
+        .fail(function (xhr, err, jquery) {
+            $('#volume_summary_div').show();
+            $('#volume_plan_container').html(xhr.responseText)
+            $('#volume_plan_container_mobile').html(xhr.responseText)
+        });
+}
+
+function draw_chart(container, title_text, sum_of_session, session_data) {
+    var sum_object_array = [];
+    _.map(sum_of_session, function (data) {
+        var sum_object = { name: data.name, y: data.qty, drilldown: data.name }
+        sum_object_array.push(sum_object)
+    })
+    var defaultTitle = title_text;
     var drilldownTitle = "More about ";
-   var chart= new Highcharts.Chart({
-    chart: {
-    type: 'column',
-renderTo:container,
-        events: {
-            drilldown: function(e) {
-                chart.setTitle({ text: drilldownTitle + e.drilldown.pointOptions.name });
-            },
-            drillup: function(e) {
-                chart.setTitle({ text: defaultTitle });
+    var chart = new Highcharts.Chart({
+        chart: {
+            type: 'column',
+            renderTo: container,
+            events: {
+                drilldown: function (e) {
+                    chart.setTitle({ text: drilldownTitle + e.drilldown.pointOptions.name });
+                },
+                drillup: function (e) {
+                    chart.setTitle({ text: defaultTitle });
+                }
             }
+        },
+        title: {
+            text: title_text
+        },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+            title: {
+                text: 'Values'
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y}'
+                }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> of total<br />'
+        },
+        series: [{
+            colorByPoint: true,
+            data: sum_object_array
+        }],
+        drilldown: {
+            series: session_data
         }
-    },
-    title: {
-    text: title_text
-    },
-    xAxis: {
-    type: 'category'
-    },
-    yAxis: {
-    title: {
-    text: 'Values'
-    }
-    },
-    legend: {
-    enabled: false
-    },
-    plotOptions: {
-    series: {
-    borderWidth: 0,
-    dataLabels: {
-    enabled: true,
-    format: '{point.y}'
-    }
-    }
-    },
-    tooltip: {
-    headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-    pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> of total<br />'
-    },
-    series: [{
-    colorByPoint: true,
-    data: sum_object_array
-    }],
-    drilldown: {
-    series: session_data
-    }
     });
-    }
-    
-    function mobile_hide()
-    {  $('#sales_summary_div').hide();
+}
+
+function mobile_hide() {
+    $('#sales_summary_div').hide();
     $('#volume_summary_div').hide();
     $('#packing_summary_div').hide();
     $('#live_sales_summary_div').hide();
-    }
-    function addCommas(str) {
+}
+function addCommas(str) {
     var parts = (str + "").split("."),
         main = parts[0],
         len = main.length,
@@ -692,10 +688,10 @@ renderTo:container,
         main = main.slice(1);
         len = main.length;
     } else {
-    	  first = "";
+        first = "";
     }
     i = len - 1;
-    while(i >= 0) {
+    while (i >= 0) {
         output = main.charAt(i) + output;
         if ((len - i) % 3 === 0 && i > 0) {
             output = "," + output;
@@ -709,6 +705,5 @@ renderTo:container,
         output += "." + parts[1];
     }
     return output;
-    }
-
-{{/yield-scripts}}
+}
+ {{/yield-scripts}}
