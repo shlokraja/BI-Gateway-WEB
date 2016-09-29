@@ -125,6 +125,33 @@ router.get('/get_volume_plan', function (req, res) {
     })
 })
 
+router.get('/get_volume_plan_outlet', function (req, res) {
+    var restaurant_id = req.query.restaurant_id;
+
+    var cookie = req.cookies.login_details;
+    if (cookie != undefined) {
+       
+        var url = api_url + 'get_volume_plan_outlet_data?restaurant_id=' + cookie.restaurant_id;
+        request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var info = JSON.parse(body)
+                if (info.status != 'FAIL') {
+                    res.send(info.data.volume_plan)
+                } else {
+                    res.status(400).send('No data found ');
+                }
+            }
+            if (error) {
+                res.status(400).send('Something failed ');
+            }
+        })
+    } else {
+        res.render('pages/live_data_login', context);
+    }
+
+
+})
+
 router.get('/get_live_sales_data', function (req, res) {
     var restaurant_id = req.query.restaurant_id;
     var url = api_url + 'get_live_sales_data?restaurant_id=' + restaurant_id;
