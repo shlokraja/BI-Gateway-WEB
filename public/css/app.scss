@@ -1,0 +1,151 @@
+$theme-color:#f9f9f9;
+$primary-color:#231f20;
+$header-background:$primary-color;
+$link-color:#3fae29;
+$button-color:$primary-color;
+$button-selected-color:#3fae29;
+$menu-background:#fbb713;
+$cusomer-contianer-height:120px;
+$font-stack:Helvetica, sans-serif;
+$tab-background:$primary-color;
+$secondary-color:#3fae29;
+$link-hover:#fff;
+$font-size:14px;
+$font-color-darkbg:#fff;
+
+
+
+body{
+	background-color: $theme-color;
+	font-family: $font-stack;
+}
+
+#header{
+	background-color: $header-background;
+	
+	img{
+		padding: 10px 0px;
+		margin: 0 AUTO;
+	}
+}
+
+#customer-container{
+	height: $cusomer-contianer-height;
+	text-align: center;
+	img{
+		padding: 10px 0px;
+	}
+}
+#menu
+{
+	background-color: $menu-background;
+	border:1px solid #c6c6c6;
+	
+}
+#menu-content{
+
+}
+.tabs-title a[aria-selected='true'] {
+	background-color:$tab-background;
+	color:#fff;
+	}
+
+
+	.tabs {
+  margin: 0;
+  list-style-type: none;
+  border: 0px solid #e6e6e6;
+}
+ .is-active{
+ 	
+ } 
+ a{
+ 	color: $primary-color;
+ }
+ .tabs{
+ 	width: 100%;
+ 	background-color:$menu-background;
+ }
+ .tabs-title{
+ 	width:25%;
+ a{ 	 
+  font-size: $font-size;
+  text-align: center;
+
+  }
+ 	a:hover{
+ 		background-color:$header-background;
+ 		color: $link-hover;
+  } 	}
+.tabs-content{
+	background-color: $theme-color;
+	border: 0px;
+	width: 100%;
+}
+
+
+@media screen and (max-width: 480px) {
+
+	#header{
+		text-align: left;
+	background-color:$header-background;
+	img{
+		padding: 10px 0px;
+	}
+
+
+}
+
+#customer-container{
+	height: $cusomer-contianer-height;
+	text-align: center;
+	img{
+		padding: 10px 0px;
+	}
+}
+
+
+}
+
+
+a.menu-icon span {
+-webkit-box-shadow: 0 10px 0 1px #666666, 0 16px 0 1px #666666, 0 22px 0 1px #666666;
+box-shadow: 0px 10px 0px 1px #666666, 0px 16px 0px 1px #666666, 0px 22px 0px 1px #666666;
+}
+
+
+#content{
+	padding: 10px;
+}
+.title-bar{
+		background-color: $primary-color;
+	}
+table{
+	border:1px solid #4a4b4a;
+
+}
+table thead th{
+	text-align: center ;
+	font-weight: normal;
+	color: $font-color-darkbg;
+	background-color: $primary-color;
+	border-right:1px solid #fff;
+
+}
+
+
+.dropdown.menu > li.is-dropdown-submenu-parent > a::after{
+	border-color: $primary-color transparent transparent;
+}
+a:hover, a:focus{
+	color: $primary-color;
+}
+
+.btn-customised{
+background-color: $menu-background;
+color: $primary-color;;
+.btn-customised:hover{
+	background-color:$primary-color;
+	color:#fff;
+}
+}
