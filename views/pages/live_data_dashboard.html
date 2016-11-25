@@ -125,7 +125,7 @@
 
 {{/yield-body}} {{#yield-styles}} {{/yield-styles}} {{#yield-scripts}}
 
- 
+
 $(document).ready(function () {
     mobile_hide();
     get_volume_plan_data();
@@ -152,7 +152,23 @@ $('.sold_taken').click(function (e) {
 
     var restaurant_id = $('#main_row').attr('data-restaurant_id')
     $.get('get_live_sales_data', { 'restaurant_id': restaurant_id }, function (sales_live) {
-        var total_quantity = 0;
+        
+
+        Sales_drawChart('live_sales_container')
+        Sales_drawChart('live_sales_container_mobile')
+
+    })
+        .fail(function (xhr, err, jquery) {
+            $('#live_sales_summary_div').show();
+            $('#live_sales_container').html(xhr.responseText)
+            $('#live_sales_container_mobile').html(xhr.responseText)
+        });
+})
+
+function Sales_drawChart(container)
+{
+
+var total_quantity = 0;
         var taken_data=sales_live.taken_data;
         $('#live_sales_summary_div').show();
         $.map(sales_live.sales_data, function (item) {
@@ -171,8 +187,7 @@ $('.sold_taken').click(function (e) {
             data.push(item)
             main_array.push({ name: key, data: data })
         })
-
-        $('.live_sales_container').highcharts({
+ $('#'+container).highcharts({
             chart: {
                 type: 'column'
             },
@@ -214,15 +229,7 @@ $('.sold_taken').click(function (e) {
             },
             series: main_array
         });
-
-    })
-        .fail(function (xhr, err, jquery) {
-            $('#live_sales_summary_div').show();
-            $('.live_sales_container').html(xhr.responseText)
-            $('.live_sales_container_mobile').html(xhr.responseText)
-        });
-})
-
+}
 
 $('.Outlet_packing').click(function (e) {
     $('#menu_name').text('Outlet Packing');
@@ -397,7 +404,7 @@ function draw_live_packing_chart(container, main_array, total_quantity) {
         },
         series: main_array
     });
-}  
+}
 
 function draw_live_session_packing_chart(container, main_data, name_array) {
 $('#'+container).highcharts({
@@ -443,8 +450,8 @@ $('#'+container).highcharts({
     series: main_data
     });
 }
-   
-   
+
+
 $('.sales_summary').click(function () {
     mobile_hide();
     $('#menu_name').text('Sales Summary');
@@ -477,7 +484,7 @@ $('.sales_summary').click(function () {
         });
 })
 
-   
+
 $('.Productwise').click(function () {
     mobile_hide();
     $('#menu_name').text('Product Sales');
@@ -512,7 +519,7 @@ $('.Productwise').click(function () {
             })
             .value();
         $('#live_sales_summary_div').show();
-        draw_chart('live_packing_container_mobile', 'Product wise details', productwise_wise_sum_of_sales, food_item_wise_outlet)
+        draw_chart('live_sales_container_mobile', 'Product wise details', productwise_wise_sum_of_sales, food_item_wise_outlet)
         draw_chart('live_sales_container', 'Product wise details', productwise_wise_sum_of_sales, food_item_wise_outlet)
     })
         .fail(function (xhr, err, jquery) {
@@ -706,4 +713,4 @@ function addCommas(str) {
     }
     return output;
 }
- {{/yield-scripts}}
+{{/yield-scripts}}
